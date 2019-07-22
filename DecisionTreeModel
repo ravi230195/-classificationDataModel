@@ -1,0 +1,62 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Jul 14 11:23:48 2019
+
+@author: erasunn
+"""
+
+'''
+   @ data !wget -O drug200.csv https://s3-api.us-geo.objectstorage.softlayer.net/cf-courses-data/CognitiveClass/ML0101ENv3/labs/drug200.csv
+'''
+import pandas as pd
+from sklearn import preprocessing
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+
+def encodingTextToLabels(X, labels):
+    le = preprocessing.LabelEncoder()
+    le.fit(labels)
+    X = le.transform(X)
+    return X
+
+def splitTrainAndTestDataSet(X,Y):
+    return train_test_split(X, Y, test_size=0.3, random_state=3)
+
+def trainingModel(X,Y):
+    dt = DecisionTreeClassifier(criterion="entropy", max_depth = 4)
+    dt.fit(X,Y)
+    print(dt.max_features_, dt.n_features_, dt.n_outputs_)
+    print(dt.tree_) # to be done
+    return dt
+
+def testAndEvaluate(X,Y, dt):
+    y_hat = dt.predict(X)
+    acc_Score = metrics.accuracy_score(Y,y_hat)
+    f_score = metrics.f1_score(Y,y_hat, average='weighted')
+    print("accuracy score: ", acc_Score)
+    print("F1-score: ", f_score)
+    
+    
+
+
+################# MAIN ###################3
+
+df = pd.read_csv(r'C:\Users\ERASUNN\Downloads\drug200.csv')
+print(df.describe())
+print(df.head())
+X = df[['Age', 'Sex', 'BP', 'Cholesterol', 'Na_to_K']].values
+Y = df[['Drug']].values
+
+lb = pd.get_dummies(df)
+print(lb.head())
+
+X[:,1] = encodingTextToLabels(X[:,1], ['M','F'])
+X[:,2] = encodingTextToLabels(X[:,2], ['LOW', 'NORMAL', 'HIGH'])
+X[:,3] = encodingTextToLabels(X[:,3], ['NORMAL','HIGH'])
+
+print (X[:10])
+
+X_trainset, X_testset, y_trainset, y_testset = splitTrainAndTestDataSet(X,Y)
+dt = trainingModel(X_trainset,y_trainset)
+testAndEvaluate(X_testset, y_testset, dt)
